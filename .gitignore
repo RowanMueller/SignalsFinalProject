@@ -48,3 +48,6 @@ yarn-error.log*
 # generated TIC assets (served as static files)
 public/tic-assets/*
 !public/tic-assets/.gitkeep
+
+# Python virtual environment
+.venv
