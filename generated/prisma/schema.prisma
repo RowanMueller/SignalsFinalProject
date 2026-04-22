@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// One block-transform compression run. `pipelineMode` separates grayscale DCT vs RGB FFT+IFFT.
+model CompressionRun {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  /// "GRAY_DCT" (grayscale, DCT) or "RGB_FFT" (RGB, 2D complex FFT+IFFT per channel).
+  pipelineMode     String @default("GRAY_DCT")
+  originalFilename String
+  /// Legacy display: "DCT" for grayscale, "Fourier" for RGB/FFT.
+  transformType    String
+  /// JPEG-style quality 1–100
+  quality          Int
+  /// Fraction of DCT coefficients kept per block before quantization (0–1)
+  sparsity         Float
+  /// Optional extra magnitude threshold on DCT coefficients (before quant), 0 = off
+  threshold        Float  @default(0)
+
+  mse                     Float
+  psnr                    Float
+  /// Decoded upload size (bytes)
+  originalUploadBytes     Int   @default(0)
+  /// On-disk size of reconstructed PNG we emit (bytes)
+  reconstructedPngBytes   Int   @default(0)
+  /// Naive transform estimate: retained coeffs × (10 or 20 bits) / 8 — not a real file size
+  estimatedTransformBytes Int   @default(0)
+  /// Pixel dimensions after resize (used for “raw uncompressed” size)
+  imageWidth              Int   @default(0)
+  imageHeight             Int   @default(0)
+  /// Size of the left preview PNG we generate (re-encoded, often larger than a tiny JPEG)
+  originalPreviewPngBytes Int   @default(0)
+
+  /// Original bits / estimated stored bits
+  compressionRatio     Float
+  retainedCoefficients Int
+  bppEstimate          Float
+  quantizationLabel    String
+
+  originalImagePath      String  @default("pending")
+  reconstructedImagePath String  @default("pending")
+  dctPreviewPath         String?
+  quantPreviewPath       String?
+}
